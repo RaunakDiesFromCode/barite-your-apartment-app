@@ -1,0 +1,28 @@
+{
+    "name": "barite",
+    "version": "1.0.0",
+    "description": "Barite is a full-stack, mobile-first apartment/society management platform. It replaces WhatsApp chaos, Excel hell, and committee drama with a single, auditable source of truth.",
+    "main": "index.js",
+    "scripts": {
+        "dev:api": "cd apps/api && npm run start:dev",
+        "dev:mobile": "cd apps/mobile && npm run start",
+        "prisma:generate": "prisma generate",
+        "prisma:migrate": "prisma migrate dev"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/RaunakDiesFromCode/barite-your-apartment-app.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "commonjs",
+    "bugs": {
+        "url": "https://github.com/RaunakDiesFromCode/barite-your-apartment-app/issues"
+    },
+    "homepage": "https://github.com/RaunakDiesFromCode/barite-your-apartment-app#readme",
+    "dependencies": {
+        "@prisma/client": "^7.3.0",
+        "prisma": "^7.3.0"
+    }
+}
