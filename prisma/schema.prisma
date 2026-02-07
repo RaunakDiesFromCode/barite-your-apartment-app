@@ -16,9 +16,29 @@ enum MembershipRole {
   ADMIN
 }
 
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
 /**
  * CORE MODELS
  */
+
+model Complaint {
+  id            String           @id @default(cuid())
+  title         String
+  description   String
+  status        ComplaintStatus  @default(OPEN)
+  createdAt     DateTime         @default(now())
+
+  flatId        String
+  membershipId  String
+
+  flat          Flat        @relation(fields: [flatId], references: [id])
+  membership    Membership  @relation(fields: [membershipId], references: [id])
+}
 
 model User {
   id        String   @id @default(cuid())
@@ -56,6 +76,8 @@ model Flat {
 
   building    Building         @relation(fields: [buildingId], references: [id])
   memberships FlatMembership[]
+
+  complaints Complaint[]
 }
 
 /**
@@ -74,6 +96,7 @@ model Membership {
   flats   FlatMembership[]
 
   @@unique([userId, societyId])
+  complaints Complaint[]
 }
 
 model FlatMembership {
