@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { SocietyModule } from './society/society.module';
 import { BuildingModule } from './building/building.module';
 import { FlatModule } from './flat/flat.module';
+import { ComplaintModule } from './complaint/complaint.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { FlatModule } from './flat/flat.module';
     SocietyModule,
     BuildingModule,
     FlatModule,
+    ComplaintModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -16,3 +16,13 @@ export class FlatController {
     return this.flatService.listFlats(buildingId);
   }
 }
+
+@Controller('me')
+export class MyFlatsController {
+  constructor(private readonly flatService: FlatService) {}
+
+  @Get('flats')
+  myFlats() {
+    return this.flatService.getMyFlats();
+  }
+}
