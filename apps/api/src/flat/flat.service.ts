@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFlatDto } from './dto/create-flat.dto';
+import { MembershipRole } from '@prisma/client';
+import { AssignFlatDto } from './dto/assign-flat.dto';
 
 @Injectable()
 export class FlatService {
@@ -82,5 +84,87 @@ export class FlatService {
     return this.prisma.flat.findMany({
       where: { buildingId },
     });
+  }
+
+  async assignFlatToMember(
+    societyId: string,
+    flatId: string,
+    dto: AssignFlatDto,
+  ) {
+    const user = await this.getDevUser();
+
+    // requester must be ADMIN
+    const adminMembership = await this.prisma.membership.findUnique({
+      where: {
+        userId_societyId: {
+          userId: user.id,
+          societyId,
+        },
+      },
+    });
+
+    if (!adminMembership || adminMembership.role !== MembershipRole.ADMIN) {
+      throw new ForbiddenException('Only admins can assign flats');
+    }
+
+    const flat = await this.prisma.flat.findUnique({
+      where: { id: flatId },
+      include: {
+        building: true,
+      },
+    });
+
+    if (!flat || flat.building.societyId !== societyId) {
+      throw new ForbiddenException('Flat does not belong to this society');
+    }
+
+    // ✅ NEW: validate target membership
+    const targetMembership = await this.prisma.membership.findUnique({
+      where: { id: dto.membershipId },
+    });
+
+    if (!targetMembership || targetMembership.societyId !== societyId) {
+      throw new ForbiddenException(
+        'Membership does not belong to this society',
+      );
+    }
+
+    return this.prisma.flatMembership.create({
+      data: {
+        flatId,
+        membershipId: targetMembership.id,
+      },
+    });
+  }
+
+  async getMyFlats() {
+    const user = await this.getDevUser();
+
+    const memberships = await this.prisma.membership.findMany({
+      where: { userId: user.id },
+      include: {
+        flats: {
+          include: {
+            flat: {
+              include: {
+                building: {
+                  include: {
+                    society: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return memberships.flatMap((m) =>
+      m.flats.map((fm) => ({
+        role: m.role,
+        flat: fm.flat,
+        society: fm.flat.building.society,
+      })),
+    );
   }
 }
