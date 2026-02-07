@@ -1,14 +1,102 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/**
+ * ENUMS
+ */
+enum MembershipRole {
+  OWNER
+  TENANT
+  ADMIN
+}
+
+/**
+ * CORE MODELS
+ */
+
+model User {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+
+  memberships Membership[]
+}
+
+model Society {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  createdAt DateTime @default(now())
+
+  buildings   Building[]
+  memberships Membership[]
+  notices     Notice[]
+}
+
+model Building {
+  id        String @id @default(cuid())
+  name      String
+  societyId String
+
+  society Society @relation(fields: [societyId], references: [id])
+  flats   Flat[]
+}
+
+model Flat {
+  id         String @id @default(cuid())
+  number     String
+  buildingId String
+
+  building    Building         @relation(fields: [buildingId], references: [id])
+  memberships FlatMembership[]
+}
+
+/**
+ * JOIN MODELS
+ */
+
+model Membership {
+  id        String         @id @default(cuid())
+  userId    String
+  societyId String
+  role      MembershipRole
+  createdAt DateTime       @default(now())
+
+  user    User             @relation(fields: [userId], references: [id])
+  society Society          @relation(fields: [societyId], references: [id])
+  flats   FlatMembership[]
+
+  @@unique([userId, societyId])
+}
+
+model FlatMembership {
+  id           String @id @default(cuid())
+  membershipId String
+  flatId       String
+
+  membership Membership @relation(fields: [membershipId], references: [id])
+  flat       Flat       @relation(fields: [flatId], references: [id])
+
+  @@unique([membershipId, flatId])
+}
+
+/**
+ * FEATURES (STARTING MINIMAL)
+ */
+
+model Notice {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  societyId String
+  createdAt DateTime @default(now())
+
+  society Society @relation(fields: [societyId], references: [id])
 }
