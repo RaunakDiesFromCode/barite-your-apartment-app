@@ -7,6 +7,7 @@ import { SocietyModule } from './society/society.module';
 import { BuildingModule } from './building/building.module';
 import { FlatModule } from './flat/flat.module';
 import { ComplaintModule } from './complaint/complaint.module';
+import { NoticeModule } from './notice/notice.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ComplaintModule } from './complaint/complaint.module';
     BuildingModule,
     FlatModule,
     ComplaintModule,
+    NoticeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
