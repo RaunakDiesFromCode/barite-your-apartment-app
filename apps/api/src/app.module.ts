@@ -4,13 +4,14 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SocietyModule } from './society/society.module';
+import { BuildingModule } from './building/building.module';
 
 @Module({
   imports: [
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     SocietyModule,
+    BuildingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
