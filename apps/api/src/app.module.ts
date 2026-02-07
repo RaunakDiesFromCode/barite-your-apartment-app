@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SocietyModule } from './society/society.module';
 import { BuildingModule } from './building/building.module';
+import { FlatModule } from './flat/flat.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { BuildingModule } from './building/building.module';
     PrismaModule,
     SocietyModule,
     BuildingModule,
+    FlatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
