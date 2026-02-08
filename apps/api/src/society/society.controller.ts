@@ -9,11 +9,10 @@ import { Request } from 'express';
 export class SocietyController {
   constructor(private readonly societyService: SocietyService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  async create(
-    @Req() req: Request & { user: { id: string } },
-    @Body() dto: CreateSocietyDto,
-  ) {
+  async create(@Req() req, @Body() dto: CreateSocietyDto) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return this.societyService.createSociety(req.user.id, dto);
   }
 

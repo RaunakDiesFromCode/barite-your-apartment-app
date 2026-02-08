@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSocietyDto } from './dto/create-society.dto';
 
+function generateJoinCode(): string {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
 @Injectable()
 export class SocietyService {
   constructor(private prisma: PrismaService) {}
@@ -12,6 +16,7 @@ export class SocietyService {
         data: {
           name: dto.name,
           address: dto.address,
+          joinCode: generateJoinCode(),
         },
       });
 
