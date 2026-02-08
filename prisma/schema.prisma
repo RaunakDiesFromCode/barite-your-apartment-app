@@ -124,3 +124,9 @@ model Notice {
   societyId   String
   society     Society  @relation(fields: [societyId], references: [id])
 }
+
+model Otp {
+  phone      String   @id
+  code       String
+  expiresAt DateTime
+}

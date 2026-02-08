@@ -8,6 +8,7 @@ import { BuildingModule } from './building/building.module';
 import { FlatModule } from './flat/flat.module';
 import { ComplaintModule } from './complaint/complaint.module';
 import { NoticeModule } from './notice/notice.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { NoticeModule } from './notice/notice.module';
     FlatModule,
     ComplaintModule,
     NoticeModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

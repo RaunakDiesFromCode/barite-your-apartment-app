@@ -137,34 +137,29 @@ export class FlatService {
     });
   }
 
-  async getMyFlats() {
-    const user = await this.getDevUser();
-
-    const memberships = await this.prisma.membership.findMany({
-      where: { userId: user.id },
+  async getMyFlats(userId: string) {
+    return this.prisma.flatMembership.findMany({
+      where: {
+        membership: {
+          userId,
+        },
+      },
       include: {
-        flats: {
+        flat: {
           include: {
-            flat: {
+            building: {
               include: {
-                building: {
-                  include: {
-                    society: true,
-                  },
-                },
+                society: true,
               },
             },
           },
         },
+        membership: {
+          include: {
+            society: true,
+          },
+        },
       },
     });
-
-    return memberships.flatMap((m) =>
-      m.flats.map((fm) => ({
-        role: m.role,
-        flat: fm.flat,
-        society: fm.flat.building.society,
-      })),
-    );
   }
 }
