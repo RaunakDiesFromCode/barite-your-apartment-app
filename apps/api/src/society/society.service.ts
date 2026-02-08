@@ -28,6 +28,14 @@ export class SocietyService {
         },
       });
 
+      // Auto-create default building (Indian single-building case)
+      await tx.building.create({
+        data: {
+          name: 'Main Building',
+          societyId: society.id,
+        },
+      });
+
       return society;
     });
   }
