@@ -1,22 +1,31 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import SocietySelectScreen from "../screens/SocietySelectScreen";
 import SocietyNavigator from "./SocietyNavigator";
+import SocietySelectScreen from "../screens/SocietySelectScreen";
 
 export type RootStackParamList = {
-    SocietySelect: undefined;
-    Society: { societyId: string };
+    Main: undefined;
+    SocietySwitch: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator>
             <Stack.Screen
-                name="SocietySelect"
-                component={SocietySelectScreen}
+                name="Main"
+                component={SocietyNavigator}
+                options={{ headerShown: false }}
             />
-            <Stack.Screen name="Society" component={SocietyNavigator} />
+
+            <Stack.Screen
+                name="SocietySwitch"
+                component={SocietySelectScreen}
+                options={{
+                    presentation: "modal",
+                    title: "Switch Society",
+                }}
+            />
         </Stack.Navigator>
     );
 }

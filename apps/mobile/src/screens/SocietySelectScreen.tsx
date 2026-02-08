@@ -1,20 +1,13 @@
+import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { SocietyMembership } from "../types/api";
 import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../navigation/RootNavigator";
-import {
-    View,
-    Text,
-    Pressable,
-    ActivityIndicator,
-    ScrollView,
-} from "react-native";
+import { useSociety } from "../hooks/useSociety";
 
 export default function SocietySelectScreen() {
-    const navigation =
-        useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+    const navigation = useNavigation<any>();
+    const { setCurrentById } = useSociety();
 
     const [societies, setSocieties] = useState<SocietyMembership[] | null>(
         null,
@@ -23,10 +16,7 @@ export default function SocietySelectScreen() {
     useEffect(() => {
         api<SocietyMembership[]>("/societies")
             .then(setSocieties)
-            .catch((err) => {
-                console.error(err);
-                setSocieties([]);
-            });
+            .catch(() => setSocieties([]));
     }, []);
 
     if (!societies) {
@@ -38,27 +28,33 @@ export default function SocietySelectScreen() {
     }
 
     return (
-        <ScrollView className="flex-1 bg-white p-4">
-            <Text className="text-2xl font-bold mb-4">Select a Society</Text>
+        <Pressable
+            className="flex-1 justify-end bg-black/40"
+            onPress={() => navigation.goBack()}
+        >
+            <View className="bg-white rounded-t-2xl p-4">
+                <Text className="text-lg font-semibold mb-3">
+                    Switch Society
+                </Text>
 
-            {societies.map((item) => (
-                <Pressable
-                    key={item.society.id}
-                    className="p-4 mb-3 rounded-lg border border-gray-200"
-                    onPress={() =>
-                        navigation.navigate("Society", {
-                            societyId: item.society.id,
-                        })
-                    }
-                >
-                    <Text className="text-lg font-semibold">
-                        {item.society.name}
-                    </Text>
-                    <Text className="text-sm text-gray-500">
-                        Role: {item.role}
-                    </Text>
-                </Pressable>
-            ))}
-        </ScrollView>
+                {societies.map((item) => (
+                    <Pressable
+                        key={item.society.id}
+                        className="py-3 border-b border-gray-200"
+                        onPress={() => {
+                            setCurrentById(item.society.id);
+                            navigation.goBack();
+                        }}
+                    >
+                        <Text className="text-base font-medium">
+                            {item.society.name}
+                        </Text>
+                        <Text className="text-xs text-gray-500">
+                            Role: {item.role}
+                        </Text>
+                    </Pressable>
+                ))}
+            </View>
+        </Pressable>
     );
 }
