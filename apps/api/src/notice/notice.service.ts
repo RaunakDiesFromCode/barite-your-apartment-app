@@ -12,18 +12,6 @@ import { MembershipRole } from '@prisma/client';
 export class NoticeService {
   constructor(private prisma: PrismaService) {}
 
-  // DEV ONLY
-  private async getDevUser() {
-    return this.prisma.user.upsert({
-      where: { phone: '9999999999' },
-      update: {},
-      create: {
-        phone: '9999999999',
-        name: 'Dev Admin',
-      },
-    });
-  }
-
   // Admin check helper
   private async ensureAdmin(userId: string, societyId: string) {
     const membership = await this.prisma.membership.findUnique({
@@ -41,9 +29,8 @@ export class NoticeService {
   }
 
   // 1️⃣ Create notice (admin only)
-  async createNotice(societyId: string, dto: CreateNoticeDto) {
-    const user = await this.getDevUser();
-    await this.ensureAdmin(user.id, societyId);
+  async createNotice(userId: string, societyId: string, dto: CreateNoticeDto) {
+    await this.ensureAdmin(userId, societyId);
 
     return this.prisma.notice.create({
       data: {
@@ -55,13 +42,11 @@ export class NoticeService {
   }
 
   // 2️⃣ List notices (all members)
-  async listNotices(societyId: string) {
-    const user = await this.getDevUser();
-
+  async listNotices(userId: string, societyId: string) {
     const membership = await this.prisma.membership.findUnique({
       where: {
         userId_societyId: {
-          userId: user.id,
+          userId,
           societyId,
         },
       },
@@ -79,12 +64,12 @@ export class NoticeService {
 
   // 3️⃣ Update notice (admin only)
   async updateNotice(
+    userId: string,
     noticeId: string,
     societyId: string,
     dto: UpdateNoticeDto,
   ) {
-    const user = await this.getDevUser();
-    await this.ensureAdmin(user.id, societyId);
+    await this.ensureAdmin(userId, societyId);
 
     const notice = await this.prisma.notice.findUnique({
       where: { id: noticeId },
@@ -101,9 +86,8 @@ export class NoticeService {
   }
 
   // 4️⃣ Delete notice (admin only)
-  async deleteNotice(noticeId: string, societyId: string) {
-    const user = await this.getDevUser();
-    await this.ensureAdmin(user.id, societyId);
+  async deleteNotice(userId: string, noticeId: string, societyId: string) {
+    await this.ensureAdmin(userId, societyId);
 
     const notice = await this.prisma.notice.findUnique({
       where: { id: noticeId },

@@ -1,23 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { MembershipRole } from '@prisma/client';
 import { CreateSocietyDto } from './dto/create-society.dto';
 
 @Injectable()
 export class SocietyService {
   constructor(private prisma: PrismaService) {}
 
-  // DEV ONLY: temporary user creation until auth is wired
-  async createSociety(dto: CreateSocietyDto) {
-    const user = await this.prisma.user.upsert({
-      where: { phone: '9999999999' },
-      update: {},
-      create: {
-        phone: '9999999999',
-        name: 'Dev Admin',
-      },
-    });
-
+  async createSociety(userId: string, dto: CreateSocietyDto) {
     return this.prisma.$transaction(async (tx) => {
       const society = await tx.society.create({
         data: {
@@ -28,9 +17,9 @@ export class SocietyService {
 
       await tx.membership.create({
         data: {
-          userId: user.id,
+          userId,
           societyId: society.id,
-          role: MembershipRole.ADMIN,
+          role: 'ADMIN',
         },
       });
 
@@ -38,20 +27,10 @@ export class SocietyService {
     });
   }
 
-  async getSocietiesForUser() {
-    // DEV ONLY: same mocked user logic
-    const user = await this.prisma.user.upsert({
-      where: { phone: '9999999999' },
-      update: {},
-      create: {
-        phone: '9999999999',
-        name: 'Dev Admin',
-      },
-    });
-
+  async getSocietiesForUser(userId: string) {
     const memberships = await this.prisma.membership.findMany({
       where: {
-        userId: user.id,
+        userId,
       },
       include: {
         society: true,

@@ -6,37 +6,24 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateComplaintDto } from './dto/create-complaint.dto';
 import { UpdateComplaintStatusDto } from './dto/update-complaint-status.dto';
-import { ComplaintStatus, MembershipRole } from '@prisma/client';
+import { MembershipRole } from '@prisma/client';
 
 @Injectable()
 export class ComplaintService {
   constructor(private prisma: PrismaService) {}
 
-  // DEV ONLY: mocked user
-  private async getDevUser() {
-    return this.prisma.user.upsert({
-      where: { phone: '9999999999' },
-      update: {},
-      create: {
-        phone: '9999999999',
-        name: 'Dev Admin',
-      },
-    });
-  }
-
   // 1️⃣ Create complaint (member only, flat-scoped)
-  async createComplaint(flatId: string, dto: CreateComplaintDto) {
-    const user = await this.getDevUser();
-
+  async createComplaint(
+    userId: string,
+    flatId: string,
+    dto: CreateComplaintDto,
+  ) {
     const flatMembership = await this.prisma.flatMembership.findFirst({
       where: {
         flatId,
         membership: {
-          userId: user.id,
+          userId,
         },
-      },
-      include: {
-        membership: true,
       },
     });
 
@@ -44,6 +31,7 @@ export class ComplaintService {
       throw new ForbiddenException('You are not assigned to this flat');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.prisma.complaint.create({
       data: {
         title: dto.title,
@@ -55,13 +43,13 @@ export class ComplaintService {
   }
 
   // 2️⃣ List my complaints (resident view)
-  async getMyComplaints() {
-    const user = await this.getDevUser();
-
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async getMyComplaints(userId: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.prisma.complaint.findMany({
       where: {
         membership: {
-          userId: user.id,
+          userId,
         },
       },
       include: {
@@ -82,13 +70,11 @@ export class ComplaintService {
   }
 
   // 3️⃣ List all complaints in a society (admin only)
-  async getSocietyComplaints(societyId: string) {
-    const user = await this.getDevUser();
-
+  async getSocietyComplaints(userId: string, societyId: string) {
     const adminMembership = await this.prisma.membership.findUnique({
       where: {
         userId_societyId: {
-          userId: user.id,
+          userId,
           societyId,
         },
       },
@@ -98,6 +84,7 @@ export class ComplaintService {
       throw new ForbiddenException('Admins only');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.prisma.complaint.findMany({
       where: {
         flat: {
@@ -121,9 +108,11 @@ export class ComplaintService {
   }
 
   // 4️⃣ Update complaint status (admin only)
-  async updateStatus(complaintId: string, dto: UpdateComplaintStatusDto) {
-    const user = await this.getDevUser();
-
+  async updateStatus(
+    userId: string,
+    complaintId: string,
+    dto: UpdateComplaintStatusDto,
+  ) {
     const complaint = await this.prisma.complaint.findUnique({
       where: { id: complaintId },
       include: {
@@ -142,7 +131,7 @@ export class ComplaintService {
     const adminMembership = await this.prisma.membership.findUnique({
       where: {
         userId_societyId: {
-          userId: user.id,
+          userId,
           societyId: complaint.flat.building.societyId,
         },
       },
