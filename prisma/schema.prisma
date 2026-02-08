@@ -26,25 +26,12 @@ enum ComplaintStatus {
  * CORE MODELS
  */
 
-model Complaint {
-  id            String           @id @default(cuid())
-  title         String
-  description   String
-  status        ComplaintStatus  @default(OPEN)
-  createdAt     DateTime         @default(now())
-
-  flatId        String
-  membershipId  String
-
-  flat          Flat        @relation(fields: [flatId], references: [id])
-  membership    Membership  @relation(fields: [membershipId], references: [id])
-}
-
 model User {
-  id        String   @id @default(cuid())
-  phone     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
+  id                 String   @id @default(cuid())
+  phone              String   @unique
+  name               String?
+  onboardingComplete Boolean  @default(false)
+  createdAt          DateTime @default(now())
 
   memberships Membership[]
 }
@@ -53,10 +40,11 @@ model Society {
   id        String   @id @default(cuid())
   name      String
   address   String?
+  joinCode  String   @unique
   createdAt DateTime @default(now())
 
-  buildings   Building[]
   memberships Membership[]
+  buildings   Building[]
   notices     Notice[]
 }
 
@@ -76,8 +64,7 @@ model Flat {
 
   building    Building         @relation(fields: [buildingId], references: [id])
   memberships FlatMembership[]
-
-  complaints Complaint[]
+  complaints  Complaint[]
 }
 
 /**
@@ -91,12 +78,15 @@ model Membership {
   role      MembershipRole
   createdAt DateTime       @default(now())
 
-  user    User             @relation(fields: [userId], references: [id])
-  society Society          @relation(fields: [societyId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+  society Society @relation(fields: [societyId], references: [id])
   flats   FlatMembership[]
 
-  @@unique([userId, societyId])
   complaints Complaint[]
+
+  @@unique([userId, societyId])
+  @@index([userId])
+  @@index([societyId])
 }
 
 model FlatMembership {
@@ -111,18 +101,37 @@ model FlatMembership {
 }
 
 /**
- * FEATURES (STARTING MINIMAL)
+ * FEATURES
  */
 
-model Notice {
-  id          String   @id @default(cuid())
-  title       String
-  content     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model Complaint {
+  id            String          @id @default(cuid())
+  title         String
+  description   String
+  status        ComplaintStatus @default(OPEN)
+  createdAt     DateTime        @default(now())
 
-  societyId   String
-  society     Society  @relation(fields: [societyId], references: [id])
+  flatId        String
+  membershipId  String
+
+  flat        Flat       @relation(fields: [flatId], references: [id])
+  membership  Membership @relation(fields: [membershipId], references: [id])
+
+  @@index([flatId])
+  @@index([membershipId])
+}
+
+model Notice {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  societyId String
+  society   Society  @relation(fields: [societyId], references: [id])
+
+  @@index([societyId])
 }
 
 model Otp {
