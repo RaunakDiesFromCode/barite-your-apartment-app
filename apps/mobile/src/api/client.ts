@@ -1,17 +1,22 @@
-const API_BASE_URL = "http://192.168.29.115:3000";
+import * as SecureStore from 'expo-secure-store';
 
-export async function api<T>(path: string, options?: RequestInit): Promise<T> {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
-        headers: {
-            "Content-Type": "application/json",
-        },
-        ...options,
-    });
+const API_BASE_URL = 'http://192.168.29.115:3000';
 
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "API error");
-    }
+export async function api<T>(path: string, options: RequestInit = {}) {
+  const token = await SecureStore.getItemAsync('token');
 
-    return res.json();
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('API error');
+  }
+
+  return res.json() as Promise<T>;
 }
