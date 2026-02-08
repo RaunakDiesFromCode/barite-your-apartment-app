@@ -1,14 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSocietyDto } from './dto/create-society.dto';
-
-function generateJoinCode(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
+import { JoinSocietyDto } from './dto/join-society.dto';
+import { MembershipRole } from '@prisma/client';
 
 @Injectable()
 export class SocietyService {
   constructor(private prisma: PrismaService) {}
+
+  private generateJoinCode() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+  }
 
   async createSociety(userId: string, dto: CreateSocietyDto) {
     return this.prisma.$transaction(async (tx) => {
@@ -16,7 +22,7 @@ export class SocietyService {
         data: {
           name: dto.name,
           address: dto.address,
-          joinCode: generateJoinCode(),
+          joinCode: this.generateJoinCode(),
         },
       });
 
@@ -24,15 +30,7 @@ export class SocietyService {
         data: {
           userId,
           societyId: society.id,
-          role: 'ADMIN',
-        },
-      });
-
-      // Auto-create default building (Indian single-building case)
-      await tx.building.create({
-        data: {
-          name: 'Main Building',
-          societyId: society.id,
+          role: MembershipRole.ADMIN,
         },
       });
 
@@ -54,5 +52,40 @@ export class SocietyService {
       role: m.role,
       society: m.society,
     }));
+  }
+
+  async joinSociety(userId: string, dto: JoinSocietyDto) {
+    // 1. Find society by join code
+    const society = await this.prisma.society.findUnique({
+      where: { joinCode: dto.joinCode },
+    });
+
+    if (!society) {
+      throw new NotFoundException('Invalid society code');
+    }
+
+    // 2. Prevent joining as ADMIN
+    if (dto.role === MembershipRole.ADMIN) {
+      throw new ForbiddenException('Cannot join as admin');
+    }
+
+    // 3. Create membership
+    try {
+      const membership = await this.prisma.membership.create({
+        data: {
+          userId,
+          societyId: society.id,
+          role: dto.role,
+        },
+      });
+
+      return {
+        id: membership.id,
+        role: membership.role,
+        society,
+      };
+    } catch {
+      throw new ForbiddenException('Already a member of this society');
+    }
   }
 }

@@ -3,6 +3,7 @@ import { SocietyService } from './society.service';
 import { CreateSocietyDto } from './dto/create-society.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Request } from 'express';
+import { JoinSocietyDto } from './dto/join-society.dto';
 
 @Controller('societies')
 @UseGuards(JwtAuthGuard) // 🔒 all society routes need auth
@@ -19,5 +20,11 @@ export class SocietyController {
   @Get()
   async list(@Req() req: Request & { user: { id: string } }) {
     return this.societyService.getSocietiesForUser(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('join')
+  join(@Req() req: { user: { id: string } }, @Body() dto: JoinSocietyDto) {
+    return this.societyService.joinSociety(req.user.id, dto);
   }
 }
