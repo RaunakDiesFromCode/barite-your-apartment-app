@@ -15,3 +15,11 @@ export type Notice = {
     content: string;
     createdAt: string;
 };
+
+export type Complaint = {
+    id: string;
+    title: string;
+    description: string;
+    status: "OPEN" | "IN_PROGRESS" | "RESOLVED";
+    createdAt: string;
+};
