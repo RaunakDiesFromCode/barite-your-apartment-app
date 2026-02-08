@@ -5,6 +5,8 @@ import { Notice } from "../types/api";
 import Screen from "../components/Screen";
 import { useRoute } from "@react-navigation/native";
 import { useSociety } from "../hooks/useSociety";
+import { Pressable } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 export default function NoticesScreen() {
     const route = useRoute<any>();
@@ -33,12 +35,15 @@ export default function NoticesScreen() {
     return (
         <Screen>
             <ScrollView showsVerticalScrollIndicator={false}>
-                <Text className="text-xl font-semibold mb-3">Notices</Text>
+                <View className="flex-row items-center justify-between mb-4">
+                    <Text className="text-xl font-semibold">Notice Board</Text>
+                </View>
 
                 {notices.length === 0 && (
-                    <View className="mt-10 items-center">
-                        <Text className="text-gray-400 text-sm">
-                            No notices yet
+                    <View className="mt-20 items-center">
+                        <Text className="text-gray-400 text-sm text-center">
+                            No notices yet.
+                            {"\n"}Important updates will appear here.
                         </Text>
                     </View>
                 )}
@@ -46,7 +51,7 @@ export default function NoticesScreen() {
                 {notices.map((n) => (
                     <View
                         key={n.id}
-                        className="mb-3 rounded-xl border border-gray-200 p-4"
+                        className="mb-4 rounded-xl border border-gray-200 bg-white p-4"
                     >
                         <Text className="text-base font-semibold mb-1">
                             {n.title}
@@ -56,9 +61,14 @@ export default function NoticesScreen() {
                             {n.content}
                         </Text>
 
-                        <Text className="text-xs text-gray-400 mt-2">
-                            {new Date(n.createdAt).toLocaleDateString()}
-                        </Text>
+                        <View className="mt-3">
+                            <Text className="text-xs text-gray-400">
+                                Posted on{" "}
+                                {new Date(n.createdAt).toLocaleDateString(
+                                    "en-IN",
+                                )}
+                            </Text>
+                        </View>
                     </View>
                 ))}
             </ScrollView>
