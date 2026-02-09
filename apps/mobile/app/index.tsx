@@ -1,25 +1,42 @@
-import { Stack, Link } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { Redirect } from 'expo-router';
+import { getToken } from '@/lib/auth/token';
+import { apiFetch } from '@/lib/api/client';
 
-import { View } from 'react-native';
+export default function Index() {
+    const [state, setState] = useState<'loading' | 'authed' | 'unauthed'>('loading');
 
-import { Button } from '@/components/Button';
-import { Container } from '@/components/Container';
-import { ScreenContent } from '@/components/ScreenContent';
+    useEffect(() => {
+        async function checkAuth() {
+            try {
+                const token = await getToken();
+                if (!token) {
+                    setState('unauthed');
+                    return;
+                }
 
-export default function Home() {
-  return (
-    <View className={styles.container}>
-      <Stack.Screen options={{ title: 'Home' }} />
-      <Container>
-        <ScreenContent path="app/index.tsx" title="Home"></ScreenContent>
-        <Link href={{ pathname: '/details', params: { name: 'Dan' } }} asChild>
-          <Button title="Show Details" />
-        </Link>
-      </Container>
-    </View>
-  );
+                await apiFetch('/me');
+                setState('authed');
+            } catch {
+                setState('unauthed');
+            }
+        }
+
+        checkAuth();
+    }, []);
+
+    if (state === 'loading') {
+        return (
+            <View className="flex-1 items-center justify-center">
+                <ActivityIndicator />
+            </View>
+        );
+    }
+
+    if (state === 'authed') {
+        return <Redirect href="/(app)" />;
+    }
+
+    return <Redirect href="/(auth)/login" />;
 }
-
-const styles = {
-  container: 'flex flex-1 bg-white',
-};
