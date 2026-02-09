@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum SocietyRole {
+  ADMIN
+  OWNER
+}
+
+enum MemberStatus {
+  PENDING
+  APPROVED
+}
+
+model User {
+  id          String           @id @default(cuid())
+  phone       String           @unique
+  name        String
+  createdAt  DateTime         @default(now())
+
+  memberships SocietyMember[]
+
+  societies Society[]
+}
+
+model OTP {
+  id         String   @id @default(cuid())
+  phone      String
+  otpHash    String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+}
+
+model Society {
+  id         String           @id @default(cuid())
+  name       String
+  address    String
+  joinCode   String           @unique
+  createdAt DateTime         @default(now())
+
+  createdById String
+  createdBy   User           @relation(fields: [createdById], references: [id])
+
+  members    SocietyMember[]
+}
+
+model SocietyMember {
+  id        String       @id @default(cuid())
+
+  userId    String
+  societyId String
+
+  role      SocietyRole
+  status    MemberStatus @default(PENDING)
+
+  // Future-proofing (not used yet)
+  buildingId String?
+  flatId     String?
+
+  user      User     @relation(fields: [userId], references: [id])
+  society   Society  @relation(fields: [societyId], references: [id])
+
+  @@unique([userId, societyId])
+}
