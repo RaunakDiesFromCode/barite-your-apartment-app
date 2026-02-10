@@ -81,3 +81,31 @@ export async function joinSociety(req: AuthRequest, res: Response) {
 
     return res.json({ success: true });
 }
+
+export async function getMySocieties(req: AuthRequest, res: Response) {
+    const userId = req.user!.userId;
+
+    const memberships = await prisma.societyMember.findMany({
+        where: { userId },
+        include: {
+            society: {
+                select: {
+                    id: true,
+                    name: true,
+                    address: true,
+                    joinCode: true,
+                },
+            },
+        },
+    });
+
+    return res.json(
+        memberships.map((m) => ({
+            societyId: m.society.id,
+            name: m.society.name,
+            address: m.society.address,
+            role: m.role,
+            status: m.status,
+        })),
+    );
+}
