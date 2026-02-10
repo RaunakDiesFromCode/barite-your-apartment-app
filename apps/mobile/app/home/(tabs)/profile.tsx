@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import PrimaryButton from '@/components/PrimaryButton';
 import { apiFetch } from '@/lib/api';

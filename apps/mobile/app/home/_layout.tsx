@@ -122,7 +122,7 @@ export default function HomeLayout() {
                             <Pressable
                                 onPress={() => {
                                     setOpen(false);
-                                    router.push('/society-choice');
+                                    router.push('../society-choice');
                                 }}
                                 className="rounded-xl border border-gray-300 py-3">
                                 <Text className="text-center font-semibold">Join a Society</Text>
@@ -131,7 +131,7 @@ export default function HomeLayout() {
                             <Pressable
                                 onPress={() => {
                                     setOpen(false);
-                                    router.push('/society-disclaimer');
+                                    router.push('../society-disclaimer');
                                 }}
                                 className="rounded-xl bg-black py-3">
                                 <Text className="text-center font-semibold text-white">

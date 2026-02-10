@@ -39,9 +39,9 @@ export default function Auth() {
         console.log('SOCIETIES:', societies);
 
         if (societies.length === 0) {
-            router.replace('/society-choice');
+            router.replace('../society-choice');
         } else {
-            router.replace('/home/(tabs)/notices');
+            router.replace('../home/(tabs)/notices');
         }
     }
 

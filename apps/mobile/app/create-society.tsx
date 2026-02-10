@@ -26,7 +26,7 @@ export default function CreateSociety() {
             });
 
             await refreshSocieties(); // ✅ refresh context
-            router.replace('/home/(tabs)/notices');
+            router.replace('../home/(tabs)/notices');
         } catch {
             Alert.alert('Error', 'Failed to create society');
         } finally {
