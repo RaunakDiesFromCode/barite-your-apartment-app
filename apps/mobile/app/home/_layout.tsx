@@ -3,7 +3,7 @@ import { View, Text, Pressable, FlatList, SafeAreaView, Animated, Dimensions } f
 import { Slot, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
-import { useSociety, Society } from '@/lib/society';
+import { useSociety } from '@/lib/society';
 
 export default function HomeLayout() {
     const router = useRouter();
@@ -32,7 +32,7 @@ export default function HomeLayout() {
                 }
             });
         }
-    }, [open]);
+    }, [open, screenHeight, translateY]);
 
     return (
         <SafeAreaView className="flex-1 bg-white" style={{ paddingTop: Constants.statusBarHeight }}>
