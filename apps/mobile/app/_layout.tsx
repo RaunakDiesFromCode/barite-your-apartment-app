@@ -5,24 +5,33 @@ import { View, ActivityIndicator } from 'react-native';
 import { getToken } from '@/lib/auth';
 import { apiFetch } from '@/lib/api';
 
+type StartRoute = 'index' | 'society-choice' | 'home';
+
 export default function RootLayout() {
     const [ready, setReady] = useState(false);
-    const [loggedIn, setLoggedIn] = useState(false);
+    const [startRoute, setStartRoute] = useState<StartRoute>('index');
 
     useEffect(() => {
         async function bootstrap() {
             try {
                 const token = await getToken();
+
                 if (!token) {
-                    setReady(true);
+                    setStartRoute('index');
                     return;
                 }
 
-                // validate token
                 await apiFetch('/me');
-                setLoggedIn(true);
+
+                const societies = await apiFetch('/societies/mine');
+
+                if (societies.length === 0) {
+                    setStartRoute('society-choice');
+                } else {
+                    setStartRoute('home');
+                }
             } catch {
-                // token invalid / expired
+                setStartRoute('index');
             } finally {
                 setReady(true);
             }
@@ -40,8 +49,12 @@ export default function RootLayout() {
     }
 
     return (
-        <Stack screenOptions={{ headerShown: false }}>
-            {loggedIn ? <Stack.Screen name="home" /> : <Stack.Screen name="index" />}
+        <Stack initialRouteName={startRoute} screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="society-choice" />
+            <Stack.Screen name="society-disclaimer" />
+            <Stack.Screen name="create-society" />
+            <Stack.Screen name="home" />
         </Stack>
     );
 }

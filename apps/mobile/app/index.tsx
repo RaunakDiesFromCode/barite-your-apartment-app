@@ -41,7 +41,7 @@ export default function Auth() {
         if (societies.length === 0) {
             router.replace('/society-choice');
         } else {
-            router.replace('/home');
+            router.replace('/home/(tabs)/notices');
         }
     }
 

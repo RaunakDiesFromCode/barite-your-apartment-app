@@ -26,13 +26,13 @@ export default function SocietyChoice() {
             });
 
             Alert.alert('Request sent', 'Waiting for admin approval');
-            router.replace('/home');
+            router.replace('/home/(tabs)/notices');
         } catch (err: any) {
             const message = typeof err?.message === 'string' ? err.message : '';
 
             if (message.includes('Already requested')) {
                 Alert.alert('Already requested', 'You have already requested to join this society');
-                router.replace('/home');
+                router.replace('/home/(tabs)/notices');
                 return;
             }
 

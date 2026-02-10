@@ -22,7 +22,7 @@ export default function CreateSociety() {
                 body: JSON.stringify({ name, address }),
             });
 
-            router.replace('/home');
+            router.replace('/home/(tabs)/notices');
         } catch {
             Alert.alert('Error', 'Failed to create society');
         } finally {
