@@ -4,9 +4,12 @@ import { useRouter } from 'expo-router';
 import TextField from '@/components/TextField';
 import PrimaryButton from '@/components/PrimaryButton';
 import { apiFetch } from '@/lib/api';
+import { useSociety } from '@/lib/society';
 
 export default function SocietyChoice() {
     const router = useRouter();
+    const { refreshSocieties } = useSociety(); // ✅ hook at top
+
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -24,6 +27,8 @@ export default function SocietyChoice() {
                 method: 'POST',
                 body: JSON.stringify({ code: trimmed }),
             });
+
+            await refreshSocieties(); // ✅ sync context
 
             Alert.alert('Request sent', 'Waiting for admin approval');
             router.replace('/home/(tabs)/notices');
@@ -50,7 +55,6 @@ export default function SocietyChoice() {
     return (
         <View className="flex-1 justify-center bg-white px-6">
             <Text className="mb-2 text-3xl font-bold">Join a Society</Text>
-
             <Text className="mb-6 text-gray-500">
                 Enter the code provided by your society admin
             </Text>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { getToken } from '@/lib/auth';
 import { apiFetch } from '@/lib/api';
+import { SocietyProvider } from '@/lib/society';
 
 type StartRoute = 'index' | 'society-choice' | 'home';
 
@@ -49,12 +50,15 @@ export default function RootLayout() {
     }
 
     return (
-        <Stack initialRouteName={startRoute} screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="society-choice" />
-            <Stack.Screen name="society-disclaimer" />
-            <Stack.Screen name="create-society" />
-            <Stack.Screen name="home" />
-        </Stack>
+        <SocietyProvider>
+            <Stack initialRouteName={startRoute} screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="society-choice" />
+                <Stack.Screen name="society-disclaimer" />
+                <Stack.Screen name="create-society" />
+                <Stack.Screen name="home" />
+            </Stack>
+        </SocietyProvider>
     );
+
 }

@@ -1,27 +1,147 @@
-import { View, Text, Pressable } from 'react-native';
+import { useState, useRef, useEffect } from 'react';
+import { View, Text, Pressable, FlatList, SafeAreaView, Animated, Dimensions } from 'react-native';
 import { Slot, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
+import { useSociety, Society } from '@/lib/society';
 
 export default function HomeLayout() {
     const router = useRouter();
+    const { societies, selectedSociety, setSelectedSociety } = useSociety();
 
-    // TEMP until society context exists
-    const societyName = 'My Society';
+    const screenHeight = Dimensions.get('window').height;
+    const translateY = useRef(new Animated.Value(screenHeight)).current;
+    const [open, setOpen] = useState(false);
+    const [visible, setVisible] = useState(false);
+
+    function selectSociety(society: Society) {
+        setSelectedSociety(society);
+        setOpen(false);
+    }
+
+    useEffect(() => {
+        if (open) {
+            setVisible(true);
+            Animated.timing(translateY, {
+                toValue: 0,
+                duration: 260,
+                useNativeDriver: true,
+            }).start();
+        } else {
+            Animated.timing(translateY, {
+                toValue: screenHeight,
+                duration: 220,
+                useNativeDriver: true,
+            }).start(({ finished }) => {
+                if (finished) {
+                    setVisible(false);
+                }
+            });
+        }
+    }, [open]);
+
 
     return (
-        <View className="flex-1 bg-white">
+        <SafeAreaView className="flex-1 bg-white" style={{ paddingTop: Constants.statusBarHeight }}>
             {/* TOP BAR */}
             <Pressable
-                // onPress={() => router.push('/society-choice')}
-                className="h-14 flex-row items-center justify-center border-b border-gray-200">
-                <Text className="mr-2 text-lg font-semibold">{societyName}</Text>
+                onPress={() => setOpen(true)}
+                className="h-14 flex-row items-center justify-center border-b border-gray-200 px-4">
+                <Text className="mr-1 text-lg font-semibold" numberOfLines={1}>
+                    {selectedSociety?.name ?? 'Select Society'}
+                </Text>
                 <Ionicons name="chevron-down" size={18} />
             </Pressable>
 
-            {/* CHILD ROUTES RENDER HERE */}
+            {/* MAIN CONTENT */}
             <View className="flex-1">
                 <Slot />
             </View>
-        </View>
+
+            {/* BOTTOM SHEET */}
+            {visible && (
+                <View className="absolute inset-0">
+                    {/* BACKDROP */}
+                    <Animated.View
+                        style={{
+                            opacity: translateY.interpolate({
+                                inputRange: [0, screenHeight],
+                                outputRange: [1, 0],
+                            }),
+                        }}
+                        className="absolute inset-0 bg-black/40"
+                        pointerEvents={open ? 'auto' : 'none'}
+                    >
+                        <Pressable className="flex-1" onPress={() => setOpen(false)} />
+                    </Animated.View>
+
+                    {/* SHEET */}
+                    <Animated.View
+                        style={{ transform: [{ translateY }] }}
+                        className="absolute bottom-0 w-full rounded-t-2xl bg-white px-4 pb-8 pt-4">
+                        <View className="mb-4 h-1 w-12 self-center rounded-full bg-gray-300" />
+
+                        <Text className="mb-4 text-lg font-bold">Your Societies</Text>
+
+                        <FlatList
+                            data={societies}
+                            keyExtractor={(item) => item.societyId}
+                            ItemSeparatorComponent={() => <View className="h-px bg-gray-200" />}
+                            renderItem={({ item }) => {
+                                const isSelected = item.societyId === selectedSociety?.societyId;
+
+                                return (
+                                    <Pressable
+                                        disabled={item.status !== 'APPROVED'}
+                                        onPress={() => selectSociety(item)}
+                                        className="py-3">
+                                        <View className="flex-row items-center justify-between">
+                                            <View>
+                                                <Text
+                                                    className={`text-base ${
+                                                        isSelected ? 'font-bold' : ''
+                                                    }`}>
+                                                    {item.name}
+                                                </Text>
+                                                <Text className="text-sm text-gray-500">
+                                                    {item.status === 'APPROVED'
+                                                        ? item.role
+                                                        : 'Pending approval'}
+                                                </Text>
+                                            </View>
+
+                                            {isSelected && <Ionicons name="checkmark" size={20} />}
+                                        </View>
+                                    </Pressable>
+                                );
+                            }}
+                        />
+
+                        {/* ACTIONS */}
+                        <View className="mt-6 gap-3">
+                            <Pressable
+                                onPress={() => {
+                                    setOpen(false);
+                                    router.push('/society-choice');
+                                }}
+                                className="rounded-xl border border-gray-300 py-3">
+                                <Text className="text-center font-semibold">Join a Society</Text>
+                            </Pressable>
+
+                            <Pressable
+                                onPress={() => {
+                                    setOpen(false);
+                                    router.push('/society-disclaimer');
+                                }}
+                                className="rounded-xl bg-black py-3">
+                                <Text className="text-center font-semibold text-white">
+                                    Create a Society
+                                </Text>
+                            </Pressable>
+                        </View>
+                    </Animated.View>
+                </View>
+            )}
+        </SafeAreaView>
     );
 }

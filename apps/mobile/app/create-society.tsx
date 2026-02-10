@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { View, Text, TextInput, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { apiFetch } from '@/lib/api';
+import { useSociety } from '@/lib/society';
 
 export default function CreateSociety() {
     const [name, setName] = useState('');
     const [address, setAddress] = useState('');
     const [loading, setLoading] = useState(false);
+
     const router = useRouter();
+    const { refreshSocieties } = useSociety(); // ✅ HOOK AT TOP LEVEL
 
     async function submit() {
         if (!name || !address) {
@@ -22,6 +25,7 @@ export default function CreateSociety() {
                 body: JSON.stringify({ name, address }),
             });
 
+            await refreshSocieties(); // ✅ refresh context
             router.replace('/home/(tabs)/notices');
         } catch {
             Alert.alert('Error', 'Failed to create society');
@@ -33,7 +37,6 @@ export default function CreateSociety() {
     return (
         <View className="flex-1 justify-center bg-white px-6">
             <Text className="mb-2 text-3xl font-bold">Create Society</Text>
-
             <Text className="mb-6 text-gray-500">You will become the society admin</Text>
 
             <TextInput
