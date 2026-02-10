@@ -7,17 +7,11 @@ import { useSociety, Society } from '@/lib/society';
 
 export default function HomeLayout() {
     const router = useRouter();
-    const { societies, selectedSociety, setSelectedSociety } = useSociety();
-
+    const { societies, selectedSociety, loading } = useSociety();
     const screenHeight = Dimensions.get('window').height;
     const translateY = useRef(new Animated.Value(screenHeight)).current;
     const [open, setOpen] = useState(false);
     const [visible, setVisible] = useState(false);
-
-    function selectSociety(society: Society) {
-        setSelectedSociety(society);
-        setOpen(false);
-    }
 
     useEffect(() => {
         if (open) {
@@ -40,7 +34,6 @@ export default function HomeLayout() {
         }
     }, [open]);
 
-
     return (
         <SafeAreaView className="flex-1 bg-white" style={{ paddingTop: Constants.statusBarHeight }}>
             {/* TOP BAR */}
@@ -48,7 +41,7 @@ export default function HomeLayout() {
                 onPress={() => setOpen(true)}
                 className="h-14 flex-row items-center justify-center border-b border-gray-200 px-4">
                 <Text className="mr-1 text-lg font-semibold" numberOfLines={1}>
-                    {selectedSociety?.name ?? 'Select Society'}
+                    {loading ? '' : selectedSociety ? selectedSociety.name : 'Select Society'}
                 </Text>
                 <Ionicons name="chevron-down" size={18} />
             </Pressable>
@@ -70,8 +63,7 @@ export default function HomeLayout() {
                             }),
                         }}
                         className="absolute inset-0 bg-black/40"
-                        pointerEvents={open ? 'auto' : 'none'}
-                    >
+                        pointerEvents={open ? 'auto' : 'none'}>
                         <Pressable className="flex-1" onPress={() => setOpen(false)} />
                     </Animated.View>
 
@@ -91,28 +83,14 @@ export default function HomeLayout() {
                                 const isSelected = item.societyId === selectedSociety?.societyId;
 
                                 return (
-                                    <Pressable
-                                        disabled={item.status !== 'APPROVED'}
-                                        onPress={() => selectSociety(item)}
-                                        className="py-3">
-                                        <View className="flex-row items-center justify-between">
-                                            <View>
-                                                <Text
-                                                    className={`text-base ${
-                                                        isSelected ? 'font-bold' : ''
-                                                    }`}>
-                                                    {item.name}
-                                                </Text>
-                                                <Text className="text-sm text-gray-500">
-                                                    {item.status === 'APPROVED'
-                                                        ? item.role
-                                                        : 'Pending approval'}
-                                                </Text>
-                                            </View>
-
-                                            {isSelected && <Ionicons name="checkmark" size={20} />}
-                                        </View>
-                                    </Pressable>
+                                    <View className="py-3">
+                                        <Text className="text-base font-semibold">{item.name}</Text>
+                                        <Text className="text-sm text-gray-500">
+                                            {item.status === 'APPROVED'
+                                                ? item.role
+                                                : 'Pending approval'}
+                                        </Text>
+                                    </View>
                                 );
                             }}
                         />
@@ -122,7 +100,7 @@ export default function HomeLayout() {
                             <Pressable
                                 onPress={() => {
                                     setOpen(false);
-                                    router.push('../society-choice');
+                                    router.push('../../society-choice');
                                 }}
                                 className="rounded-xl border border-gray-300 py-3">
                                 <Text className="text-center font-semibold">Join a Society</Text>
@@ -131,7 +109,7 @@ export default function HomeLayout() {
                             <Pressable
                                 onPress={() => {
                                     setOpen(false);
-                                    router.push('../society-disclaimer');
+                                    router.push('../../society-disclaimer');
                                 }}
                                 className="rounded-xl bg-black py-3">
                                 <Text className="text-center font-semibold text-white">

@@ -6,6 +6,7 @@ import TextField from '@/components/TextField';
 import PrimaryButton from '@/components/PrimaryButton';
 import { apiFetch } from '@/lib/api';
 import { saveToken } from '@/lib/auth';
+import { useSociety } from '@/lib/society';
 
 type Step = 'phone' | 'otp' | 'name';
 
@@ -16,6 +17,7 @@ export default function Auth() {
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { refreshSocieties } = useSociety();
 
     async function sendOtp() {
         setLoading(true);
@@ -34,6 +36,7 @@ export default function Auth() {
 
     async function finishLogin(token: string) {
         await saveToken(token);
+        await refreshSocieties();
 
         const societies = await apiFetch('/societies/mine');
         console.log('SOCIETIES:', societies);
