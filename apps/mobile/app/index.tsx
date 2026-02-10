@@ -32,6 +32,20 @@ export default function Auth() {
         }
     }
 
+    async function finishLogin(token: string) {
+        await saveToken(token);
+
+        const societies = await apiFetch('/societies/mine');
+        console.log('SOCIETIES:', societies);
+
+        if (societies.length === 0) {
+            router.replace('/society-choice');
+        } else {
+            router.replace('/home');
+        }
+    }
+
+
     async function verifyOtp() {
         setLoading(true);
         try {
@@ -40,14 +54,29 @@ export default function Auth() {
                 body: JSON.stringify({ phone, otp }),
             });
 
-            if (res.requiresName) {
+            // Existing user
+            await finishLogin(res.token);
+        } catch (err: any) {
+            const message = typeof err?.message === 'string' ? err.message : '';
+
+            // 👇 NEW USER PATH (THIS WAS MISSING)
+            if (message.includes('Name required')) {
                 setStep('name');
                 return;
             }
 
-            await saveToken(res.token);
-            router.replace('/home');
-        } catch {
+            if (message.includes('expired')) {
+                Alert.alert('OTP expired', 'Please request a new OTP');
+                setStep('phone');
+                return;
+            }
+
+            if (message.includes('attempts')) {
+                Alert.alert('Too many attempts', 'Please request a new OTP');
+                setStep('phone');
+                return;
+            }
+
             Alert.alert('Error', 'Invalid OTP');
         } finally {
             setLoading(false);
@@ -62,8 +91,7 @@ export default function Auth() {
                 body: JSON.stringify({ phone, otp, name }),
             });
 
-            await saveToken(res.token);
-            router.replace('/home');
+            await finishLogin(res.token);
         } catch {
             Alert.alert('Error', 'Signup failed');
         } finally {
