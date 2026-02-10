@@ -1,42 +1,111 @@
-import { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
-import { Redirect } from 'expo-router';
-import { getToken } from '@/lib/auth/token';
-import { apiFetch } from '@/lib/api/client';
+import { useState } from 'react';
+import { View, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+import AuthHeader from '@/components/AuthHeader';
+import TextField from '@/components/TextField';
+import PrimaryButton from '@/components/PrimaryButton';
+import { apiFetch } from '@/lib/api';
+import { saveToken } from '@/lib/auth';
 
-export default function Index() {
-    const [state, setState] = useState<'loading' | 'authed' | 'unauthed'>('loading');
+type Step = 'phone' | 'otp' | 'name';
 
-    useEffect(() => {
-        async function checkAuth() {
-            try {
-                const token = await getToken();
-                if (!token) {
-                    setState('unauthed');
-                    return;
-                }
+export default function Auth() {
+    const [step, setStep] = useState<Step>('phone');
+    const [phone, setPhone] = useState('');
+    const [otp, setOtp] = useState('');
+    const [name, setName] = useState('');
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
 
-                await apiFetch('/me');
-                setState('authed');
-            } catch {
-                setState('unauthed');
-            }
+    async function sendOtp() {
+        setLoading(true);
+        try {
+            await apiFetch('/auth/request-otp', {
+                method: 'POST',
+                body: JSON.stringify({ phone }),
+            });
+            setStep('otp');
+        } catch {
+            Alert.alert('Error', 'Failed to send OTP');
+        } finally {
+            setLoading(false);
         }
-
-        checkAuth();
-    }, []);
-
-    if (state === 'loading') {
-        return (
-            <View className="flex-1 items-center justify-center">
-                <ActivityIndicator />
-            </View>
-        );
     }
 
-    if (state === 'authed') {
-        return <Redirect href="/(app)" />;
+    async function verifyOtp() {
+        setLoading(true);
+        try {
+            const res = await apiFetch('/auth/verify-otp', {
+                method: 'POST',
+                body: JSON.stringify({ phone, otp }),
+            });
+
+            if (res.requiresName) {
+                setStep('name');
+                return;
+            }
+
+            await saveToken(res.token);
+            router.replace('/home');
+        } catch {
+            Alert.alert('Error', 'Invalid OTP');
+        } finally {
+            setLoading(false);
+        }
     }
 
-    return <Redirect href="/(auth)/login" />;
+    async function submitName() {
+        setLoading(true);
+        try {
+            const res = await apiFetch('/auth/verify-otp', {
+                method: 'POST',
+                body: JSON.stringify({ phone, otp, name }),
+            });
+
+            await saveToken(res.token);
+            router.replace('/home');
+        } catch {
+            Alert.alert('Error', 'Signup failed');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <View className="flex-1 justify-center bg-white px-6">
+            {step === 'phone' && (
+                <>
+                    <AuthHeader title="Welcome to Barite" subtitle="Enter your phone number" />
+                    <TextField
+                        placeholder="Phone number"
+                        keyboardType="phone-pad"
+                        value={phone}
+                        onChangeText={setPhone}
+                    />
+                    <PrimaryButton title="Continue" onPress={sendOtp} disabled={loading} />
+                </>
+            )}
+
+            {step === 'otp' && (
+                <>
+                    <AuthHeader title="Verify OTP" subtitle="We sent a code to your phone" />
+                    <TextField
+                        placeholder="6-digit OTP"
+                        keyboardType="number-pad"
+                        value={otp}
+                        onChangeText={setOtp}
+                    />
+                    <PrimaryButton title="Verify" onPress={verifyOtp} disabled={loading} />
+                </>
+            )}
+
+            {step === 'name' && (
+                <>
+                    <AuthHeader title="Almost done" subtitle="Tell us your name" />
+                    <TextField placeholder="Your name" value={name} onChangeText={setName} />
+                    <PrimaryButton title="Finish" onPress={submitName} disabled={loading} />
+                </>
+            )}
+        </View>
+    );
 }
